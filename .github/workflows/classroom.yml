@@ -55,7 +55,7 @@ jobs:
         bundle _1.15.3_ exec rails server -e development -p 3000 > /tmp/rails_server.log 2>&1 &
         SERVER_PID=$!
         for i in {1..60}; do
-          if curl -fsS http://127.0.0.1:3000/movies >/dev/null; then
+          if curl -sS http://127.0.0.1:3000/movies >/dev/null; then
             echo "Rails server is ready"
             exit 0
           fi
