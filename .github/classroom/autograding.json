@@ -2,129 +2,66 @@
   "tests": [
     {
       "name": "App: responds to simple request",
-      "setup": "sed -i \"/gem 'ZenTest'/d\" Gemfile && bundle install && bundle install --gemfile=.github/classroom/Gemfile && RAILS_ENV=development bundle exec rake db:setup && bundle exec rails server -e development -p 3000 -d && for i in {1..60}; do curl -fsS http://127.0.0.1:3000/movies >/dev/null && break; sleep 2; done",
-      "run": "HEROKU_URI=127.0.0.1:3000 bundle exec --gemfile=.github/classroom/Gemfile rspec .github/classroom/app_spec.rb -e \"responds to simple request\"",
+      "setup": "gem install bundler -v 1.15.3 --no-document && sed -i \"/gem 'ZenTest'/d\" Gemfile && bundle _1.15.3_ install --without production && gem install rspec -v 3.10.0 --no-document && gem install nokogiri -v 1.12.5 --no-document && gem install connection_pool -v 2.5.5 --no-document && gem install net-http-persistent -v 4.0.1 --no-document && gem install mechanize -v 2.8.2 --no-document && RAILS_ENV=development bundle _1.15.3_ exec rake db:setup && RAILS_ENV=development bundle _1.15.3_ exec rake db:migrate && bundle _1.15.3_ exec rails server -e development -p 3000 -d && for i in {1..60}; do curl -fsS http://127.0.0.1:3000/movies >/dev/null && break; sleep 2; done",
+      "run": "HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e \"responds to simple request\"",
       "timeout": 20,
       "points": 5
     },
     {
-      "name": "GET /search: is successful",
-      "setup": "",
-      "run": "HEROKU_URI=127.0.0.1:3000 bundle exec --gemfile=.github/classroom/Gemfile rspec .github/classroom/app_spec.rb -e \"search page is successful\"",
+      "name": "Director: new page has director field",
+      "setup": "bash .github/classroom/reset_director_seed.sh",
+      "run": "HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e \"new page includes director field\"",
       "timeout": 20,
-      "points": 2
+      "points": 10
     },
     {
-      "name": "GET /search: title input",
-      "setup": "",
-      "run": "HEROKU_URI=127.0.0.1:3000 bundle exec --gemfile=.github/classroom/Gemfile rspec .github/classroom/app_spec.rb -e \"movie_title_field\"",
+      "name": "Director: edit page has director field",
+      "setup": "bash .github/classroom/reset_director_seed.sh",
+      "run": "HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e \"edit page includes director field\"",
       "timeout": 20,
-      "points": 2
+      "points": 10
     },
     {
-      "name": "GET /search: year input",
-      "setup": "",
-      "run": "HEROKU_URI=127.0.0.1:3000 bundle exec --gemfile=.github/classroom/Gemfile rspec .github/classroom/app_spec.rb -e \"movie_year_field\"",
+      "name": "Director: updating movie persists director",
+      "setup": "bash .github/classroom/reset_director_seed.sh",
+      "run": "HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e \"updating movie persists director\"",
       "timeout": 20,
-      "points": 2
+      "points": 15
     },
     {
-      "name": "GET /search: submit button",
-      "setup": "",
-      "run": "HEROKU_URI=127.0.0.1:3000 bundle exec --gemfile=.github/classroom/Gemfile rspec .github/classroom/app_spec.rb -e \"tmdb_submit\"",
+      "name": "Director: show page displays director",
+      "setup": "bash .github/classroom/reset_director_seed.sh",
+      "run": "HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e \"show page displays director\"",
       "timeout": 20,
-      "points": 2
+      "points": 10
     },
     {
-      "name": "Validation: all fields empty",
-      "setup": "",
-      "run": "HEROKU_URI=127.0.0.1:3000 bundle exec --gemfile=.github/classroom/Gemfile rspec .github/classroom/app_spec.rb -e \"all fields are empty\"",
+      "name": "Director: show page has same director link",
+      "setup": "bash .github/classroom/reset_director_seed.sh",
+      "run": "HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e \"show page has same director link\"",
       "timeout": 20,
-      "points": 5
+      "points": 10
     },
     {
-      "name": "Validation: no matched movies",
-      "setup": "",
-      "run": "HEROKU_URI=127.0.0.1:3000 bundle exec --gemfile=.github/classroom/Gemfile rspec .github/classroom/app_spec.rb -e \"no movies are matched\"",
+      "name": "Director: same director page includes matched movies",
+      "setup": "bash .github/classroom/reset_director_seed.sh",
+      "run": "HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e \"same director page includes matched movies\"",
       "timeout": 20,
-      "points": 5
+      "points": 15
     },
     {
-      "name": "Search: year empty shows all",
-      "setup": "",
-      "run": "HEROKU_URI=127.0.0.1:3000 bundle exec --gemfile=.github/classroom/Gemfile rspec .github/classroom/app_spec.rb -e \"year field is empty\"",
+      "name": "Director: same director page excludes different director movies",
+      "setup": "bash .github/classroom/reset_director_seed.sh",
+      "run": "HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e \"same director page excludes different director movies\"",
       "timeout": 20,
-      "points": 5
+      "points": 10
     },
     {
-      "name": "Search: manhunter 1986",
-      "setup": "",
-      "run": "HEROKU_URI=127.0.0.1:3000 bundle exec --gemfile=.github/classroom/Gemfile rspec .github/classroom/app_spec.rb -e \"manhunter 1986\"",
+      "name": "Director: no director sad path",
+      "setup": "bash .github/classroom/reset_director_seed.sh",
+      "run": "HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e \"movie without director redirects with warning\"",
       "timeout": 20,
-      "points": 5
-    },
-    {
-      "name": "Search: gone girl 2014",
-      "setup": "",
-      "run": "HEROKU_URI=127.0.0.1:3000 bundle exec --gemfile=.github/classroom/Gemfile rspec .github/classroom/app_spec.rb -e \"gone girl 2014\"",
-      "timeout": 20,
-      "points": 5
-    },
-    {
-      "name": "Search: olympics 2000",
-      "setup": "",
-      "run": "HEROKU_URI=127.0.0.1:3000 bundle exec --gemfile=.github/classroom/Gemfile rspec .github/classroom/app_spec.rb -e \"olympics 2000\"",
-      "timeout": 20,
-      "points": 5
-    },
-    {
-      "name": "Search: it 2018",
-      "setup": "",
-      "run": "HEROKU_URI=127.0.0.1:3000 bundle exec --gemfile=.github/classroom/Gemfile rspec .github/classroom/app_spec.rb -e \"it 2018\"",
-      "timeout": 20,
-      "points": 5
-    },
-    {
-      "name": "Search: halloween 1950",
-      "setup": "",
-      "run": "HEROKU_URI=127.0.0.1:3000 bundle exec --gemfile=.github/classroom/Gemfile rspec .github/classroom/app_spec.rb -e \"does not show any matched movies when year field is not empty\"",
-      "timeout": 20,
-      "points": 5
-    },
-    {
-      "name": "Search: jason 1998",
-      "setup": "",
-      "run": "HEROKU_URI=127.0.0.1:3000 bundle exec --gemfile=.github/classroom/Gemfile rspec .github/classroom/app_spec.rb -e \"shows one matched movies\"",
-      "timeout": 20,
-      "points": 5
-    },
-    {
-      "name": "Search: language all",
-      "setup": "",
-      "run": "HEROKU_URI=127.0.0.1:3000 bundle exec --gemfile=.github/classroom/Gemfile rspec .github/classroom/app_spec.rb -e \"language checkbox is set to all\"",
-      "timeout": 20,
-      "points": 5
-    },
-    {
-      "name": "DB: add first movie",
-      "setup": "",
-      "run": "HEROKU_URI=127.0.0.1:3000 bundle exec --gemfile=.github/classroom/Gemfile rspec .github/classroom/app_spec.rb -e \"adds the first movie\"",
-      "timeout": 20,
-      "points": 14
-    },
-    {
-      "name": "DB: add movie success",
-      "setup": "",
-      "run": "HEROKU_URI=127.0.0.1:3000 bundle exec --gemfile=.github/classroom/Gemfile rspec .github/classroom/app_spec.rb -e \"shows success when adding movie\"",
-      "timeout": 20,
-      "points": 9
-    },
-    {
-      "name": "DB: add last movie",
-      "setup": "",
-      "run": "HEROKU_URI=127.0.0.1:3000 bundle exec --gemfile=.github/classroom/Gemfile rspec .github/classroom/app_spec.rb -e \"adds last movie\"",
-      "timeout": 20,
-      "points": 14
+      "points": 15
     }
   ]
 }

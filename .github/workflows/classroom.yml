@@ -32,19 +32,7 @@ jobs:
 
     - name: Remove incompatible ZenTest dependency
       run: |
-        python - <<'PY'
-        from pathlib import Path
-
-        gemfile = Path('Gemfile')
-        lines = gemfile.read_text().splitlines()
-        kept = [
-            line
-            for line in lines
-            if not line.strip().startswith("gem 'ZenTest'")
-            and not line.strip().startswith('gem "ZenTest"')
-        ]
-        gemfile.write_text('\n'.join(kept) + '\n')
-        PY
+        sed -i "/gem 'ZenTest'/d" Gemfile
 
     - name: Install app dependencies
       run: bundle _1.15.3_ install --without production
@@ -57,26 +45,13 @@ jobs:
         gem install net-http-persistent -v 4.0.1 --no-document
         gem install mechanize -v 2.8.2 --no-document
 
-    - name: Decrypt autograder
-      env:
-        HW05_KEY: ${{ secrets.HW05_KEY }}
-      run: |
-        openssl enc -d -aes-256-cbc -pbkdf2 -iter 100000 \
-          -pass pass:${HW05_KEY} \
-          -in .github/classroom/autograder.tar.gz.enc | \
-          tar -xzf - -C .github/classroom/
-        # Verify files are present then remove enc file from memory path
-        test -f .github/classroom/app_spec.rb
-        test -f .github/classroom/Gemfile
-
     - name: Setup database
-      run: RAILS_ENV=development bundle _1.15.3_ exec rake db:setup
+      run: |
+        RAILS_ENV=development bundle _1.15.3_ exec rake db:setup
+        RAILS_ENV=development bundle _1.15.3_ exec rake db:migrate
 
     - name: Start Rails server
-      env:
-        TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
       run: |
-        export TMDB_API_KEY
         bundle _1.15.3_ exec rails server -e development -p 3000 > /tmp/rails_server.log 2>&1 &
         SERVER_PID=$!
         for i in {1..60}; do
@@ -92,213 +67,107 @@ jobs:
         kill "$SERVER_PID" || true
         exit 1
 
-    # ==================== HTTP and Form Tests ====================
-
     - name: App responds to simple request
       id: app-responds
       uses: classroom-resources/autograding-command-grader@v1
       with:
         test-name: "App: responds to simple request"
         setup-command: ''
-        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/app_spec.rb -e "responds to simple request"
+        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e "responds to simple request"
         timeout: 20
         max-score: 5
 
-    - name: Search page is successful
-      id: search-success
+    - name: New page has director field
+      id: new-director-field
       uses: classroom-resources/autograding-command-grader@v1
       with:
-        test-name: "GET /search: is successful"
-        setup-command: ''
-        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/app_spec.rb -e "search page is successful"
+        test-name: "Director: new page has director field"
+        setup-command: bash .github/classroom/reset_director_seed.sh
+        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e "new page includes director field"
         timeout: 20
-        max-score: 2
+        max-score: 10
 
-    - name: Search title input exists
-      id: search-title-field
+    - name: Edit page has director field
+      id: edit-director-field
       uses: classroom-resources/autograding-command-grader@v1
       with:
-        test-name: "GET /search: title input"
-        setup-command: ''
-        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/app_spec.rb -e "movie_title_field"
+        test-name: "Director: edit page has director field"
+        setup-command: bash .github/classroom/reset_director_seed.sh
+        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e "edit page includes director field"
         timeout: 20
-        max-score: 2
+        max-score: 10
 
-    - name: Search year input exists
-      id: search-year-field
+    - name: Update persists director
+      id: update-director
       uses: classroom-resources/autograding-command-grader@v1
       with:
-        test-name: "GET /search: year input"
-        setup-command: ''
-        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/app_spec.rb -e "movie_year_field"
+        test-name: "Director: updating movie persists director"
+        setup-command: bash .github/classroom/reset_director_seed.sh
+        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e "updating movie persists director"
         timeout: 20
-        max-score: 2
+        max-score: 15
 
-    - name: Search submit button exists
-      id: search-submit-button
+    - name: Show page displays director
+      id: show-director
       uses: classroom-resources/autograding-command-grader@v1
       with:
-        test-name: "GET /search: submit button"
-        setup-command: ''
-        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/app_spec.rb -e "tmdb_submit"
+        test-name: "Director: show page displays director"
+        setup-command: bash .github/classroom/reset_director_seed.sh
+        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e "show page displays director"
         timeout: 20
-        max-score: 2
+        max-score: 10
 
-    - name: Warn when both fields empty
-      id: empty-fields-warning
+    - name: Show page has same director link
+      id: same-director-link
       uses: classroom-resources/autograding-command-grader@v1
       with:
-        test-name: "Validation: all fields empty"
-        setup-command: ''
-        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/app_spec.rb -e "all fields are empty"
+        test-name: "Director: show page has same director link"
+        setup-command: bash .github/classroom/reset_director_seed.sh
+        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e "show page has same director link"
         timeout: 20
-        max-score: 5
+        max-score: 10
 
-    - name: Warn when no matched movies
-      id: no-match-warning
+    - name: Similar page includes matched movies
+      id: same-director-matches
       uses: classroom-resources/autograding-command-grader@v1
       with:
-        test-name: "Validation: no matched movies"
-        setup-command: ''
-        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/app_spec.rb -e "no movies are matched"
+        test-name: "Director: same director page includes matched movies"
+        setup-command: bash .github/classroom/reset_director_seed.sh
+        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e "same director page includes matched movies"
         timeout: 20
-        max-score: 5
+        max-score: 15
 
-    - name: Match all when year empty
-      id: year-empty-match-all
+    - name: Similar page excludes other directors
+      id: same-director-excludes
       uses: classroom-resources/autograding-command-grader@v1
       with:
-        test-name: "Search: year empty shows all"
-        setup-command: ''
-        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/app_spec.rb -e "year field is empty"
+        test-name: "Director: same director page excludes different director movies"
+        setup-command: bash .github/classroom/reset_director_seed.sh
+        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e "same director page excludes different director movies"
         timeout: 20
-        max-score: 5
+        max-score: 10
 
-    - name: Match one (manhunter 1986)
-      id: manhunter-1986
+    - name: No director sad path handled
+      id: no-director-sad-path
       uses: classroom-resources/autograding-command-grader@v1
       with:
-        test-name: "Search: manhunter 1986"
-        setup-command: ''
-        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/app_spec.rb -e "manhunter 1986"
+        test-name: "Director: no director sad path"
+        setup-command: bash .github/classroom/reset_director_seed.sh
+        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e "movie without director redirects with warning"
         timeout: 20
-        max-score: 5
-
-    - name: Match one (gone girl 2014)
-      id: gone-girl-2014
-      uses: classroom-resources/autograding-command-grader@v1
-      with:
-        test-name: "Search: gone girl 2014"
-        setup-command: ''
-        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/app_spec.rb -e "gone girl 2014"
-        timeout: 20
-        max-score: 5
-
-    - name: Match one (olympics 2000)
-      id: olympics-2000
-      uses: classroom-resources/autograding-command-grader@v1
-      with:
-        test-name: "Search: olympics 2000"
-        setup-command: ''
-        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/app_spec.rb -e "olympics 2000"
-        timeout: 20
-        max-score: 5
-
-    - name: Match many (it 2018)
-      id: it-2018
-      uses: classroom-resources/autograding-command-grader@v1
-      with:
-        test-name: "Search: it 2018"
-        setup-command: ''
-        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/app_spec.rb -e "it 2018"
-        timeout: 20
-        max-score: 5
-
-    - name: No result (halloween 1950)
-      id: halloween-1950
-      uses: classroom-resources/autograding-command-grader@v1
-      with:
-        test-name: "Search: halloween 1950"
-        setup-command: ''
-        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/app_spec.rb -e "does not show any matched movies when year field is not empty"
-        timeout: 20
-        max-score: 5
-
-    - name: One result (jason 1998)
-      id: jason-1998
-      uses: classroom-resources/autograding-command-grader@v1
-      with:
-        test-name: "Search: jason 1998"
-        setup-command: ''
-        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/app_spec.rb -e "shows one matched movies"
-        timeout: 20
-        max-score: 5
-
-    - name: Language all has results
-      id: language-all
-      uses: classroom-resources/autograding-command-grader@v1
-      with:
-        test-name: "Search: language all"
-        setup-command: ''
-        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/app_spec.rb -e "language checkbox is set to all"
-        timeout: 20
-        max-score: 5
-
-    - name: Add first result to DB
-      id: add-first-movie
-      uses: classroom-resources/autograding-command-grader@v1
-      with:
-        test-name: "DB: add first movie"
-        setup-command: ''
-        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/app_spec.rb -e "adds the first movie"
-        timeout: 20
-        max-score: 14
-
-    - name: Add movie success flash
-      id: add-success-flash
-      uses: classroom-resources/autograding-command-grader@v1
-      with:
-        test-name: "DB: add movie success"
-        setup-command: ''
-        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/app_spec.rb -e "shows success when adding movie"
-        timeout: 20
-        max-score: 9
-
-    - name: Add last result to DB
-      id: add-last-movie
-      uses: classroom-resources/autograding-command-grader@v1
-      with:
-        test-name: "DB: add last movie"
-        setup-command: ''
-        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/app_spec.rb -e "adds last movie"
-        timeout: 20
-        max-score: 14
-
-    - name: Cleanup decrypted autograder
-      if: always()
-      run: |
-        rm -f .github/classroom/app_spec.rb .github/classroom/Gemfile
+        max-score: 15
 
     - name: Autograding Reporter
       uses: classroom-resources/autograding-grading-reporter@v1
       env:
         APP-RESPONDS_RESULTS: ${{ steps.app-responds.outputs.result }}
-        SEARCH-SUCCESS_RESULTS: ${{ steps.search-success.outputs.result }}
-        SEARCH-TITLE-FIELD_RESULTS: ${{ steps.search-title-field.outputs.result }}
-        SEARCH-YEAR-FIELD_RESULTS: ${{ steps.search-year-field.outputs.result }}
-        SEARCH-SUBMIT-BUTTON_RESULTS: ${{ steps.search-submit-button.outputs.result }}
-        EMPTY-FIELDS-WARNING_RESULTS: ${{ steps.empty-fields-warning.outputs.result }}
-        NO-MATCH-WARNING_RESULTS: ${{ steps.no-match-warning.outputs.result }}
-        YEAR-EMPTY-MATCH-ALL_RESULTS: ${{ steps.year-empty-match-all.outputs.result }}
-        MANHUNTER-1986_RESULTS: ${{ steps.manhunter-1986.outputs.result }}
-        GONE-GIRL-2014_RESULTS: ${{ steps.gone-girl-2014.outputs.result }}
-        OLYMPICS-2000_RESULTS: ${{ steps.olympics-2000.outputs.result }}
-        IT-2018_RESULTS: ${{ steps.it-2018.outputs.result }}
-        HALLOWEEN-1950_RESULTS: ${{ steps.halloween-1950.outputs.result }}
-        JASON-1998_RESULTS: ${{ steps.jason-1998.outputs.result }}
-        LANGUAGE-ALL_RESULTS: ${{ steps.language-all.outputs.result }}
-        ADD-FIRST-MOVIE_RESULTS: ${{ steps.add-first-movie.outputs.result }}
-        ADD-SUCCESS-FLASH_RESULTS: ${{ steps.add-success-flash.outputs.result }}
-        ADD-LAST-MOVIE_RESULTS: ${{ steps.add-last-movie.outputs.result }}
+        NEW-DIRECTOR-FIELD_RESULTS: ${{ steps.new-director-field.outputs.result }}
+        EDIT-DIRECTOR-FIELD_RESULTS: ${{ steps.edit-director-field.outputs.result }}
+        UPDATE-DIRECTOR_RESULTS: ${{ steps.update-director.outputs.result }}
+        SHOW-DIRECTOR_RESULTS: ${{ steps.show-director.outputs.result }}
+        SAME-DIRECTOR-LINK_RESULTS: ${{ steps.same-director-link.outputs.result }}
+        SAME-DIRECTOR-MATCHES_RESULTS: ${{ steps.same-director-matches.outputs.result }}
+        SAME-DIRECTOR-EXCLUDES_RESULTS: ${{ steps.same-director-excludes.outputs.result }}
+        NO-DIRECTOR-SAD-PATH_RESULTS: ${{ steps.no-director-sad-path.outputs.result }}
       with:
-        runners: app-responds,search-success,search-title-field,search-year-field,search-submit-button,empty-fields-warning,no-match-warning,year-empty-match-all,manhunter-1986,gone-girl-2014,olympics-2000,it-2018,halloween-1950,jason-1998,language-all,add-first-movie,add-success-flash,add-last-movie
+        runners: app-responds,new-director-field,edit-director-field,update-director,show-director,same-director-link,same-director-matches,same-director-excludes,no-director-sad-path
