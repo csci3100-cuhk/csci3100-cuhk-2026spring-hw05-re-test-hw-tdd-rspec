@@ -1,0 +1,67 @@
+{
+  "tests": [
+    {
+      "name": "App: responds to simple request",
+      "setup": "gem install bundler -v 1.15.3 --no-document && bundle _1.15.3_ install --without production && gem install rspec -v 3.10.0 --no-document && gem install nokogiri -v 1.12.5 --no-document && gem install connection_pool -v 2.5.5 --no-document && gem install net-http-persistent -v 4.0.1 --no-document && gem install mechanize -v 2.8.2 --no-document && RAILS_ENV=development bundle _1.15.3_ exec rake db:setup && RAILS_ENV=development bundle _1.15.3_ exec rake db:migrate && bundle _1.15.3_ exec rails server -e development -p 3000 -d && for i in {1..60}; do curl -sS http://127.0.0.1:3000/movies >/dev/null && break; sleep 2; done",
+      "run": "HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e \"responds to simple request\"",
+      "timeout": 20,
+      "points": 5
+    },
+    {
+      "name": "Director: new page has director field",
+      "setup": "bash .github/classroom/reset_director_seed.sh",
+      "run": "HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e \"new page includes director field\"",
+      "timeout": 20,
+      "points": 10
+    },
+    {
+      "name": "Director: edit page has director field",
+      "setup": "bash .github/classroom/reset_director_seed.sh",
+      "run": "HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e \"edit page includes director field\"",
+      "timeout": 20,
+      "points": 10
+    },
+    {
+      "name": "Director: updating movie persists director",
+      "setup": "bash .github/classroom/reset_director_seed.sh",
+      "run": "HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e \"updating movie persists director\"",
+      "timeout": 20,
+      "points": 15
+    },
+    {
+      "name": "Director: show page displays director",
+      "setup": "bash .github/classroom/reset_director_seed.sh",
+      "run": "HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e \"show page displays director\"",
+      "timeout": 20,
+      "points": 10
+    },
+    {
+      "name": "Director: show page has same director link",
+      "setup": "bash .github/classroom/reset_director_seed.sh",
+      "run": "HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e \"show page has same director link\"",
+      "timeout": 20,
+      "points": 10
+    },
+    {
+      "name": "Director: same director page includes matched movies",
+      "setup": "bash .github/classroom/reset_director_seed.sh",
+      "run": "HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e \"same director page includes matched movies\"",
+      "timeout": 20,
+      "points": 15
+    },
+    {
+      "name": "Director: same director page excludes different director movies",
+      "setup": "bash .github/classroom/reset_director_seed.sh",
+      "run": "HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e \"same director page excludes different director movies\"",
+      "timeout": 20,
+      "points": 10
+    },
+    {
+      "name": "Director: no director sad path",
+      "setup": "bash .github/classroom/reset_director_seed.sh",
+      "run": "HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e \"movie without director redirects with warning\"",
+      "timeout": 20,
+      "points": 15
+    }
+  ]
+}

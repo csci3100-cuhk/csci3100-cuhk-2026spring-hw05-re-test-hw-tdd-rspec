@@ -5,8 +5,6 @@ Unit/Functional
 tests with the Cucumber and RSpec tools to add a "find movies with same
 director" feature to RottenPotatoes.
 
-**NOTE: Do not clone this repo to your workspace. Fork it first, then
-**clone your fork.**
 
 Learning Goals
 --------------
@@ -71,21 +69,18 @@ test coverage results to CodeClimate.**
 
 **Part 0: Setup - ensure tests run locally**
 
-Clone this repo to your development environment,  make sure you have the necessary gems installed,
-and do the necessary configuration to install Cucumber and RSpec:
+If you are using GitHub Codespaces for this assignment, the development
+environment is preconfigured. You can directly run the checks below:
 
 ```
-bundle install --without production
-bundle exec rake db:migrate
-rails generate cucumber:install capybara 
-rails generate cucumber_rails_training_wheels:install 
-rails generate rspec:install 
+bundle exec rake db:setup
+bundle exec rake rspec
+bundle exec rake cucumber
 ```
 
-1. You can double-check if everything was installed by running `bundle exec rake rspec` and `bundle exec rake cucumber`.  
-They should pass without any errors.
-We have provided some Cucumber scenarios in `features/` and a subset of
-the RSpec tests you'll need in `spec/`.
+1. The commands above should run without errors before you push your code.
+We have provided framework files in `features/` and `spec/`; you should
+add/complete the tests needed for this assignment.
 
 1. Next, set up test coverage collection.  Add the following code **BEFORE ANYTHING ELSE ON LINE ONE** of both
 `spec/rails_helper.rb` and `features/support/env.rb`:
@@ -108,6 +103,75 @@ test coverage results and sending them to CodeClimate was successful.
 1. Finally, check CodeClimate for the results of analyzing both code quality and test coverage on your app.
 For test coverage, you can click on the name of any file in CodeClimate, then click the Code tab, then check the 
 Coverage box.  Lines that were "touched" by some test will be highlighted.
+
+### Student Local Self-Check Guide (before push)
+
+You should verify your implementation locally before pushing.
+
+**Autograder scope note:** this homework is graded on the `director` feature flow
+(`add/edit director`, `find movies with same director`, and sad path handling).
+There is no TMDB `/search` grading in this version.
+
+#### Option A: Use GitHub Codespaces (recommended)
+
+1. Open your assignment repository in Codespaces.
+2. Wait for container setup.
+3. Run:
+
+```sh
+bundle exec rake db:setup
+bundle exec rake rspec
+bundle exec rake cucumber
+```
+
+#### Option B: Local environment
+
+If you work locally, use Ruby 2.7.x and run:
+
+```sh
+bundle exec rake db:setup
+bundle exec rake rspec
+bundle exec rake cucumber
+```
+
+#### GitHub Action autograder checks (100 points)
+
+The workflow checks these behaviors:
+
+1. App responds to `/movies` (5)
+2. New page has `director` input field (10)
+3. Edit page has `director` input field (10)
+4. Updating a movie persists director changes (15)
+5. Show page displays director info for a movie with director (10)
+6. Show page has a "Find Movies With Same Director" link (10)
+7. Similar-director page includes expected matching movie(s) (15)
+8. Similar-director page excludes movies by different directors (10)
+9. Movie without director follows sad path (redirect + warning) (15)
+
+#### Manual walkthrough you can run locally
+
+Use this seed set for manual checks:
+
+- `Star Wars` / `George Lucas`
+- `THX-1138` / `George Lucas`
+- `Blade Runner` / `Ridley Scott`
+- `Alien` / no director
+
+Then verify:
+
+1. On `movies/new` and `movies/:id/edit`, a `Director` field is present.
+2. Editing `Alien` and saving `Director = Ridley Scott` persists to the show page.
+3. On `Star Wars` show page, director appears and the same-director link exists.
+4. Clicking same-director link from `Star Wars` includes `THX-1138` and excludes `Blade Runner`.
+5. On `Alien` show page, clicking same-director link goes back to home/list page and shows a warning about missing director info.
+
+#### Suggested file areas to test
+
+1. Route for similar-director lookup in `config/routes.rb`
+2. Controller action handling same-director search in `app/controllers/movies_controller.rb`
+3. Model query logic in `app/models/movie.rb`
+4. View updates in `app/views/movies/show.html.haml`, `app/views/movies/new.html.haml`, and `app/views/movies/edit.html.haml`
+5. Your own RSpec and Cucumber tests in `spec/` and `features/`
 
 
 

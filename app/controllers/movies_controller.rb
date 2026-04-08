@@ -1,7 +1,6 @@
 class MoviesController < ApplicationController
-  
   def movie_params
-    params.require(:movie).permit(:title, :rating, :description, :release_date)
+    params.require(:movie).permit(:title, :rating, :description, :release_date, :director)
   end
 
   def show
@@ -12,25 +11,39 @@ class MoviesController < ApplicationController
 
   def index
     sort = params[:sort] || session[:sort]
+    ordering = {}
     case sort
     when 'title'
-      ordering,@title_header = {:title => :asc}, 'hilite'
+      ordering = { title: :asc }
+      @title_header = 'hilite'
     when 'release_date'
-      ordering,@date_header = {:release_date => :asc}, 'hilite'
+      ordering = { release_date: :asc }
+      @date_header = 'hilite'
     end
     @all_ratings = Movie.all_ratings
     @selected_ratings = params[:ratings] || session[:ratings] || {}
-    
-    if @selected_ratings == {}
-      @selected_ratings = Hash[@all_ratings.map {|rating| [rating, rating]}]
-    end
-    
+
+    @selected_ratings = Hash[@all_ratings.map { |rating| [rating, rating] }] if @selected_ratings == {}
+    @ratings_to_show_hash = @selected_ratings
+
     if params[:sort] != session[:sort] or params[:ratings] != session[:ratings]
       session[:sort] = sort
       session[:ratings] = @selected_ratings
-      redirect_to :sort => sort, :ratings => @selected_ratings and return
+      redirect_to sort: sort, ratings: @selected_ratings and return
     end
     @movies = Movie.where(rating: @selected_ratings.keys).order(ordering)
+  end
+
+  def show_by_director
+    movie = Movie.find(params[:id])
+
+    if movie.director.present?
+      @director = movie.director
+      @movies = movie.others_by_same_director
+    else
+      flash[:warning] = "'#{movie.title}' has no director info"
+      redirect_to movies_path
+    end
   end
 
   def new
@@ -60,5 +73,4 @@ class MoviesController < ApplicationController
     flash[:notice] = "Movie '#{@movie.title}' deleted."
     redirect_to movies_path
   end
-
 end
