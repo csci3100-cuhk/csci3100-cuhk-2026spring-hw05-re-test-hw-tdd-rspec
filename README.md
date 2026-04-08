@@ -19,9 +19,6 @@ of app code that lets the Cucumber scenario pass
 of a new feature, since a new feature often touches the database schema,
 model(s), view(s), and controller(s)
 
-* Use continuous integration with [Travis](http://travis-ci.org) to
-continuously monitor test coverage and passing status
-
 Specifically, you will add two features to RottenPotatoes: "User can
 include name of Director with a movie", and "Given a movie with a
 director, user can search for other movies with same director".
@@ -31,41 +28,6 @@ of RSpec tests for the features.
 
 Introduction and Setup
 ----
-
-## Travis CI: continuous integration and test coverage
-
-In this assignment you'll use [Travis](http://travis-ci.org) to
-continuously monitor if your tests are passing and what your C0 test coverage is.  If you don't already
-have a free Travis account, create one; then add your fork of this
-repo to the "watched repos".  You will have to confirm on GitHub that
-Travis should be allowed access to your public repo; this allows Travis
-to be notified when any code pushes occur.
-
-The idea behind CI is simple: it can be set up to automatically run
-tasks related to testing and verification each time you push new code.
-For Rails apps that have been set up with Cucumber and RSpec, the tasks
-`rake cucumber` and `rake rspec` run all of the Cucumber scenarios and
-RSpec tests, respectively.  We will also include an additional task 
-that measures test coverage, by tracking which lines of which files in your
-app are actually "touched" by any test code.
-
-1. On the Travis CI website, locate the instructions to add a "Travis CI
-badge" to this `README.md` file.  Commit and push the modified
-`README.md` and verify you can see the Travis badge render correctly on
-the front page of your repo.
-
-2. Take a look at the `.travis.yml` file in this project, which gives
-Travis instructions on what to do each time code is pushed to GitHub.
-Satisfy yourself that you understand the meaning of each directive in
-that file.
-
-1. In particular, notice the lines that collect test coverage information and send it to CodeClimate, a hosted
-code-analysis service, to report on your test coverage.  To set this up:
-Setup a free account (we recommend using "Sign In With GitHub") on `codeclimate.com`, and add the repo for this
-homework.  Go to the repo's settings in CodeClimate, select the Test Coverage set of options, and
-copy the CodeClimate Test Reporter ID (a long hexadecimal string).  **Copy this string to the `.travis.yml` file** as the value 
-for the global option `CC_TEST_REPORTER_ID`.  **If you don't do this step, Travis will be unable to report 
-test coverage results to CodeClimate.**
 
 **Part 0: Setup - ensure tests run locally**
 
@@ -94,11 +56,6 @@ Now whenever you run `rspec` or `cucumber`, SimpleCov will generate a coverage r
 in a directory named `coverage/`.  SimpleCov can intelligently merge the results, so running
 the tests for Rspec does not overwrite the coverage results from
 SimpleCov and vice versa.  Verify that coverage reporting is working.
-
-1. When you're satisfied that the tests and coverage reporting work locally, commit and push all your changes, then head over
-to `travis-ci.org`.  You should see that a build (continuous integration run) has begun; since there are no tests yet,
-it should run very quickly.  In particular, inspect the output to make sure the process of collecting
-test coverage results and sending them to CodeClimate was successful.
 
 1. Finally, check CodeClimate for the results of analyzing both code quality and test coverage on your app.
 For test coverage, you can click on the name of any file in CodeClimate, then click the Code tab, then check the 
