@@ -112,6 +112,38 @@ You should verify your implementation locally before pushing.
 (`add/edit director`, `find movies with same director`, and sad path handling).
 There is no TMDB `/search` grading in this version.
 
+#### Exactly where you should implement code (look for `TODO(hw05-director)`)
+
+The starter template already marks required locations with `TODO(hw05-director)`.
+Please complete those TODOs in the following files:
+
+1. `db/migrate/20260408090000_add_director_to_movies.rb`
+   - Add the migration to create the `director` column.
+2. `app/controllers/movies_controller.rb`
+   - Permit `:director` in `movie_params`.
+   - Implement the action that finds movies with the same director.
+3. `app/models/movie.rb`
+   - Implement the model method that finds movies with the same director.
+4. `config/routes.rb`
+   - Add the route for "Find Movies With Same Director".
+5. `app/views/movies/new.html.haml`
+   - Add `Director` input field.
+6. `app/views/movies/edit.html.haml`
+   - Add `Director` input field.
+7. `app/views/movies/show.html.haml`
+   - Show director info.
+   - Add "Find Movies With Same Director" link.
+8. `app/views/movies/show_by_director.html.haml`
+   - Render same-director results page.
+
+After implementing, run migration and tests:
+
+```sh
+bundle exec rake db:migrate
+bundle exec rake rspec
+bundle exec rake cucumber
+```
+
 #### Option A: Use GitHub Codespaces (recommended)
 
 1. Open your assignment repository in Codespaces.
