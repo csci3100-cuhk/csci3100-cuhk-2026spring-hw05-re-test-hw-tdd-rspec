@@ -1,0 +1,172 @@
+name: Autograding Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+permissions:
+  checks: write
+  actions: read
+  contents: read
+
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: '2.7.0'
+        bundler-cache: false
+
+    - name: Install Bundler 1.15.3
+      run: |
+        gem install bundler -v 1.15.3 --no-document
+
+    - name: Remove incompatible ZenTest dependency
+      run: |
+        sed -i "/gem 'ZenTest'/d" Gemfile
+
+    - name: Install app dependencies
+      run: bundle _1.15.3_ install --without production
+
+    - name: Install grader gems
+      run: |
+        gem install rspec -v 3.10.0 --no-document
+        gem install nokogiri -v 1.12.5 --no-document
+        gem install connection_pool -v 2.5.5 --no-document
+        gem install net-http-persistent -v 4.0.1 --no-document
+        gem install mechanize -v 2.8.2 --no-document
+
+    - name: Setup database
+      run: |
+        RAILS_ENV=development bundle _1.15.3_ exec rake db:drop db:create db:migrate
+
+    - name: Start Rails server
+      run: |
+        bundle _1.15.3_ exec rails server -e development -p 3000 > /tmp/rails_server.log 2>&1 &
+        SERVER_PID=$!
+        for i in {1..60}; do
+          if curl -sS http://127.0.0.1:3000/movies >/dev/null; then
+            echo "Rails server is ready"
+            exit 0
+          fi
+          sleep 2
+        done
+        echo "Rails server failed to start in time"
+        echo "===== rails server log (tail) ====="
+        tail -n 200 /tmp/rails_server.log || true
+        kill "$SERVER_PID" || true
+        exit 1
+
+    - name: App responds to simple request
+      id: app-responds
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "App: responds to simple request"
+        setup-command: ''
+        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e "responds to simple request"
+        timeout: 20
+        max-score: 5
+
+    - name: New page has director field
+      id: new-director-field
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "Director: new page has director field"
+        setup-command: bash .github/classroom/reset_director_seed.sh
+        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e "new page includes director field"
+        timeout: 20
+        max-score: 10
+
+    - name: Edit page has director field
+      id: edit-director-field
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "Director: edit page has director field"
+        setup-command: bash .github/classroom/reset_director_seed.sh
+        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e "edit page includes director field"
+        timeout: 20
+        max-score: 10
+
+    - name: Update persists director
+      id: update-director
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "Director: updating movie persists director"
+        setup-command: bash .github/classroom/reset_director_seed.sh
+        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e "updating movie persists director"
+        timeout: 20
+        max-score: 15
+
+    - name: Show page displays director
+      id: show-director
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "Director: show page displays director"
+        setup-command: bash .github/classroom/reset_director_seed.sh
+        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e "show page displays director"
+        timeout: 20
+        max-score: 10
+
+    - name: Show page has same director link
+      id: same-director-link
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "Director: show page has same director link"
+        setup-command: bash .github/classroom/reset_director_seed.sh
+        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e "show page has same director link"
+        timeout: 20
+        max-score: 10
+
+    - name: Similar page includes matched movies
+      id: same-director-matches
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "Director: same director page includes matched movies"
+        setup-command: bash .github/classroom/reset_director_seed.sh
+        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e "same director page includes matched movies"
+        timeout: 20
+        max-score: 15
+
+    - name: Similar page excludes other directors
+      id: same-director-excludes
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "Director: same director page excludes different director movies"
+        setup-command: bash .github/classroom/reset_director_seed.sh
+        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e "same director page excludes different director movies"
+        timeout: 20
+        max-score: 10
+
+    - name: No director sad path handled
+      id: no-director-sad-path
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: "Director: no director sad path"
+        setup-command: bash .github/classroom/reset_director_seed.sh
+        command: HEROKU_URI=127.0.0.1:3000 ruby -S rspec .github/classroom/director_spec.rb -e "movie without director redirects with warning"
+        timeout: 20
+        max-score: 15
+
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        APP-RESPONDS_RESULTS: ${{ steps.app-responds.outputs.result }}
+        NEW-DIRECTOR-FIELD_RESULTS: ${{ steps.new-director-field.outputs.result }}
+        EDIT-DIRECTOR-FIELD_RESULTS: ${{ steps.edit-director-field.outputs.result }}
+        UPDATE-DIRECTOR_RESULTS: ${{ steps.update-director.outputs.result }}
+        SHOW-DIRECTOR_RESULTS: ${{ steps.show-director.outputs.result }}
+        SAME-DIRECTOR-LINK_RESULTS: ${{ steps.same-director-link.outputs.result }}
+        SAME-DIRECTOR-MATCHES_RESULTS: ${{ steps.same-director-matches.outputs.result }}
+        SAME-DIRECTOR-EXCLUDES_RESULTS: ${{ steps.same-director-excludes.outputs.result }}
+        NO-DIRECTOR-SAD-PATH_RESULTS: ${{ steps.no-director-sad-path.outputs.result }}
+      with:
+        runners: app-responds,new-director-field,edit-director-field,update-director,show-director,same-director-link,same-director-matches,same-director-excludes,no-director-sad-path
