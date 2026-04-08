@@ -33,3 +33,5 @@ bower.json
 .powenv
 # Ignore Byebug command history file.
 .byebug_history
+
+csci3100-cuhk-2026spring-hw05-intro-to-rspec-and-tdd-hw-tdd-rspec

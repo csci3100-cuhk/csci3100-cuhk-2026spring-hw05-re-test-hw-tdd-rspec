@@ -11,7 +11,6 @@ group :development, :test do
   gem 'capybara', '2.4.4'
   gem 'launchy'
   gem 'rspec-rails', '3.3.2'
-  gem 'ZenTest', '4.11.0'
 end
 
 group :test do
@@ -32,7 +31,8 @@ gem 'coffee-rails', '~> 4.1.0'
 gem 'uglifier', '>= 2.7.1'
 
 gem 'jquery-rails'
-gem 'haml'
+gem 'haml', '~> 5.2.2'
+gem 'faraday', '~> 1.10'
 
 # Use unicorn as the web server
 # gem 'unicorn'
