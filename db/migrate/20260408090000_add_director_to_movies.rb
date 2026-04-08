@@ -1,5 +1,6 @@
 class AddDirectorToMovies < ActiveRecord::Migration
   def change
-    add_column :movies, :director, :string
+    # TODO(hw05-director): add director column to movies table.
+    # Example: add_column :movies, :director, :string
   end
 end
