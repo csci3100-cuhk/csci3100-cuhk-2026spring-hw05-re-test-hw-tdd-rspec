@@ -1,0 +1,36 @@
+{
+  "name": "HW05 Ruby 2.7.0 / Classroom-aligned - Codespace",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+  "remoteUser": "root",
+  "containerEnv": {
+    "RUBY_VERSION": "2.7.0",
+    "BUNDLER_VERSION": "1.15.3",
+    "GRADER_RSPEC_VERSION": "3.10.0",
+    "GRADER_NOKOGIRI_VERSION": "1.12.5",
+    "GRADER_CONNECTION_POOL_VERSION": "2.5.5",
+    "GRADER_NET_HTTP_PERSISTENT_VERSION": "4.0.1",
+    "GRADER_MECHANIZE_VERSION": "2.8.2",
+    "BUNDLE_PATH": "vendor/bundle",
+    "BUNDLE_JOBS": "4"
+  },
+  "postCreateCommand": "gem install bundler -v $BUNDLER_VERSION --no-document && bundle _${BUNDLER_VERSION}_ config set --local path 'vendor/bundle' && bundle _${BUNDLER_VERSION}_ install --without production --jobs $BUNDLE_JOBS && gem install rspec -v $GRADER_RSPEC_VERSION --no-document && gem install nokogiri -v $GRADER_NOKOGIRI_VERSION --no-document && gem install connection_pool -v $GRADER_CONNECTION_POOL_VERSION --no-document && gem install net-http-persistent -v $GRADER_NET_HTTP_PERSISTENT_VERSION --no-document && gem install mechanize -v $GRADER_MECHANIZE_VERSION --no-document && RAILS_ENV=development bundle _${BUNDLER_VERSION}_ exec rake db:setup",
+  "forwardPorts": [3000],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "rebornix.Ruby",
+        "castwide.solargraph",
+        "eamodio.gitlens",
+        "misogi.ruby-rubocop",
+        "ms-vscode-remote.remote-containers"
+      ],
+      "settings": {
+        "ruby.useBundler": true,
+        "solargraph.diagnostics": true
+      }
+    }
+  }
+}
