@@ -1,7 +1,6 @@
 class MoviesController < ApplicationController
   def movie_params
-    # TODO(hw05-director): after adding director column, permit :director here.
-    params.require(:movie).permit(:title, :rating, :description, :release_date)
+    params.require(:movie).permit(:title, :rating, :description, :release_date, :director)
   end
 
   def show
@@ -35,11 +34,17 @@ class MoviesController < ApplicationController
     @movies = Movie.where(rating: @selected_ratings.keys).order(ordering)
   end
 
-  # TODO(hw05-director): add an action to find movies by the same director.
-  # It should:
-  # 1) find the target movie by id
-  # 2) if director exists, load other movies by same director and render view
-  # 3) if director is missing, flash warning and redirect to movies_path
+  def show_by_director
+    movie = Movie.find(params[:id])
+
+    if movie.director.present?
+      @director = movie.director
+      @movies = movie.others_by_same_director
+    else
+      flash[:warning] = "'#{movie.title}' has no director info"
+      redirect_to movies_path
+    end
+  end
 
   def new
     # default: render 'new' template

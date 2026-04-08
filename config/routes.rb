@@ -1,6 +1,6 @@
 Rottenpotatoes::Application.routes.draw do
   resources :movies
-  # TODO(hw05-director): add a route for "find movies with same director".
+  get 'movies/:id/similar', to: 'movies#show_by_director', as: 'same_director'
   # map '/' to be a redirect to '/movies'
   root to: redirect('/movies')
 end

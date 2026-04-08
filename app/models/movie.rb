@@ -3,6 +3,7 @@ class Movie < ActiveRecord::Base
     %w[G PG PG-13 NC-17 R]
   end
 
-  # TODO(hw05-director): implement a model method to find other movies
-  # with the same director as this movie.
+  def others_by_same_director
+    Movie.where(director: director).where.not(id: id)
+  end
 end
