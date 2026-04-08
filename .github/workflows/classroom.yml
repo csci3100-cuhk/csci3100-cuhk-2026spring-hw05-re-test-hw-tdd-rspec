@@ -52,6 +52,7 @@ jobs:
 
     - name: Start Rails server
       run: |
+        RAILS_ENV=development bundle _1.15.3_ exec rake db:migrate
         bundle _1.15.3_ exec rails server -e development -p 3000 > /tmp/rails_server.log 2>&1 &
         SERVER_PID=$!
         for i in {1..60}; do
