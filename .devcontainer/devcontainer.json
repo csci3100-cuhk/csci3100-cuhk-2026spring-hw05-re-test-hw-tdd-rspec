@@ -16,7 +16,7 @@
     "BUNDLE_PATH": "vendor/bundle",
     "BUNDLE_JOBS": "4"
   },
-  "postCreateCommand": "gem install bundler -v $BUNDLER_VERSION --no-document && bundle _${BUNDLER_VERSION}_ config set --local path 'vendor/bundle' && bundle _${BUNDLER_VERSION}_ install --without production --jobs $BUNDLE_JOBS && gem install rspec -v $GRADER_RSPEC_VERSION --no-document && gem install nokogiri -v $GRADER_NOKOGIRI_VERSION --no-document && gem install connection_pool -v $GRADER_CONNECTION_POOL_VERSION --no-document && gem install net-http-persistent -v $GRADER_NET_HTTP_PERSISTENT_VERSION --no-document && gem install mechanize -v $GRADER_MECHANIZE_VERSION --no-document && RAILS_ENV=development bundle _${BUNDLER_VERSION}_ exec rake db:setup",
+  "postCreateCommand": "gem install bundler -v $BUNDLER_VERSION --no-document && bundle _${BUNDLER_VERSION}_ config set --local path 'vendor/bundle' && bundle _${BUNDLER_VERSION}_ install --without production --jobs $BUNDLE_JOBS && gem install rspec -v $GRADER_RSPEC_VERSION --no-document && gem install nokogiri -v $GRADER_NOKOGIRI_VERSION --no-document && gem install connection_pool -v $GRADER_CONNECTION_POOL_VERSION --no-document && gem install net-http-persistent -v $GRADER_NET_HTTP_PERSISTENT_VERSION --no-document && gem install mechanize -v $GRADER_MECHANIZE_VERSION --no-document && RAILS_ENV=development bundle _${BUNDLER_VERSION}_ exec rake db:setup db:migrate && RAILS_ENV=test bundle _${BUNDLER_VERSION}_ exec rake db:setup db:migrate",
   "forwardPorts": [3000],
   "customizations": {
     "vscode": {

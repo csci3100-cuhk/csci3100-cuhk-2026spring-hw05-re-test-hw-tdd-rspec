@@ -84,9 +84,8 @@ RUN bundle _1.15.3_ install --without production
 # Copy the rest of the application
 COPY . .
 
-# Setup the database (development + test environments)
-RUN RAILS_ENV=development bundle _1.15.3_ exec rake db:setup && \
-RAILS_ENV=test bundle _1.15.3_ exec rake db:setup
+# Do not run database tasks during image build.
+# App migrations may change over time and can make the image build fail.
 
 # Expose the Rails default port
 EXPOSE 3000
