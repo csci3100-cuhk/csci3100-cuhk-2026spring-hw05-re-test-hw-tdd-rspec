@@ -35,6 +35,7 @@ If you are using GitHub Codespaces for this assignment, the development
 environment is preconfigured. You can directly run the checks below:
 
 ```
+bundle exec rake db:migrate RAILS_ENV=test
 bundle exec rake db:setup
 bundle exec rake rspec
 bundle exec rake cucumber
