@@ -175,7 +175,7 @@ to do this.
 
 Remember that once the migration is applied, you also have to do `rake
 db:test:prepare` to load the new post-migration schema into the test
-database!
+database.
 
 Remember to add the new `director` attribute to the list of movie
 attributes allowed in `params`, in the `movie_params` method in
@@ -247,26 +247,4 @@ undertested code. Specifically, you can write unit tests for the
 
 **Submission:**
 
-Here are the instructions for submitting your assignment for
-grading. Submit a zip file containing the following files and
-directories of your app:
-
-* app/ config/ db/migrate features/ spec/ Gemfile Gemfile.lock
-
-If you modified any other files, please include them too. If you are on
-a *nix based system, navigate to the root directory for this assignment
-and run
-
-```sh $ cd ..  $ zip -r hw5.zip rottenpotatoes/app/
-rottenpotatoes/config/ rottenpotatoes/db/migrate
-rottenpotatoes/features/ rottenpotatoes/spec/ rottenpotatoes/Gemfile
-rottenpotatoes/Gemfile.lock ```
-
-This will create the file hw5.zip, which you will submit.
-
-IMPORTANT NOTE: Your submission must be zipped inside a rottenpotatoes/
-folder so that it looks like so:
-
-``` $ tree .  └── rottenpotatoes
-    ├── Gemfile ├── Gemfile.lock ├── app ...
-```
+Please submit your assignment onto your assignment repository.
