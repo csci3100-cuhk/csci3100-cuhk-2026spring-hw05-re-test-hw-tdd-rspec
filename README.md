@@ -37,7 +37,7 @@ environment is preconfigured. You can directly run the checks below:
 ```
 bundle exec rake db:migrate RAILS_ENV=test
 bundle exec rake db:setup
-bundle exec rake rspec
+bundle exec rake spec
 bundle exec rake cucumber
 ```
 
@@ -98,7 +98,7 @@ After implementing, run migration and tests:
 
 ```sh
 bundle exec rake db:migrate
-bundle exec rake rspec
+bundle exec rake spec
 bundle exec rake cucumber
 ```
 
@@ -110,7 +110,7 @@ bundle exec rake cucumber
 
 ```sh
 bundle exec rake db:setup
-bundle exec rake rspec
+bundle exec rake spec
 bundle exec rake cucumber
 ```
 
@@ -120,7 +120,7 @@ If you work locally, use Ruby 2.7.x and run:
 
 ```sh
 bundle exec rake db:setup
-bundle exec rake rspec
+bundle exec rake spec
 bundle exec rake cucumber
 ```
 
