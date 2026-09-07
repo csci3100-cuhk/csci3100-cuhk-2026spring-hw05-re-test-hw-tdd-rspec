@@ -5,6 +5,7 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+  workflow_dispatch:
 
 permissions:
   checks: write
@@ -18,26 +19,32 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      id: checkout
+      uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
 
     - name: Set up Ruby
-      uses: ruby/setup-ruby@v1
+      id: setup-ruby
+      uses: ruby/setup-ruby@95ef2b042f9d7a56d8268cba8559e2842e2ad01b
       with:
         ruby-version: '2.7.0'
         bundler-cache: false
 
     - name: Install Bundler 1.15.3
+      id: install-bundler
       run: |
         gem install bundler -v 1.15.3 --no-document
 
     - name: Remove incompatible ZenTest dependency
+      id: remove-zentest
       run: |
         sed -i "/gem 'ZenTest'/d" Gemfile
 
     - name: Install app dependencies
+      id: install-app
       run: bundle _1.15.3_ install --without production
 
     - name: Install grader gems
+      id: install-grader
       run: |
         gem install rspec -v 3.10.0 --no-document
         gem install nokogiri -v 1.12.5 --no-document
@@ -46,14 +53,16 @@ jobs:
         gem install mechanize -v 2.8.2 --no-document
 
     - name: Setup database
+      id: setup-database
       run: |
         RAILS_ENV=development bundle _1.15.3_ exec rake db:drop db:create db:migrate
 
     - name: Start Rails server
+      id: start-server
       run: |
         bundle _1.15.3_ exec rails server -e development -p 3000 > /tmp/rails_server.log 2>&1 &
         SERVER_PID=$!
-        for i in {1..60}; do
+        for _ in {1..60}; do
           if curl -sS http://127.0.0.1:3000/movies >/dev/null; then
             echo "Rails server is ready"
             exit 0
@@ -68,7 +77,7 @@ jobs:
 
     - name: App responds to simple request
       id: app-responds
-      uses: classroom-resources/autograding-command-grader@v1
+      uses: classroom-resources/autograding-command-grader@d5b3fa6f50f7f629b7bfae0cc3e4c58852b412d5
       with:
         test-name: "App: responds to simple request"
         setup-command: ''
@@ -78,7 +87,7 @@ jobs:
 
     - name: New page has director field
       id: new-director-field
-      uses: classroom-resources/autograding-command-grader@v1
+      uses: classroom-resources/autograding-command-grader@d5b3fa6f50f7f629b7bfae0cc3e4c58852b412d5
       with:
         test-name: "Director: new page has director field"
         setup-command: bash .github/classroom/reset_director_seed.sh
@@ -88,7 +97,7 @@ jobs:
 
     - name: Edit page has director field
       id: edit-director-field
-      uses: classroom-resources/autograding-command-grader@v1
+      uses: classroom-resources/autograding-command-grader@d5b3fa6f50f7f629b7bfae0cc3e4c58852b412d5
       with:
         test-name: "Director: edit page has director field"
         setup-command: bash .github/classroom/reset_director_seed.sh
@@ -98,7 +107,7 @@ jobs:
 
     - name: Update persists director
       id: update-director
-      uses: classroom-resources/autograding-command-grader@v1
+      uses: classroom-resources/autograding-command-grader@d5b3fa6f50f7f629b7bfae0cc3e4c58852b412d5
       with:
         test-name: "Director: updating movie persists director"
         setup-command: bash .github/classroom/reset_director_seed.sh
@@ -108,7 +117,7 @@ jobs:
 
     - name: Show page displays director
       id: show-director
-      uses: classroom-resources/autograding-command-grader@v1
+      uses: classroom-resources/autograding-command-grader@d5b3fa6f50f7f629b7bfae0cc3e4c58852b412d5
       with:
         test-name: "Director: show page displays director"
         setup-command: bash .github/classroom/reset_director_seed.sh
@@ -118,7 +127,7 @@ jobs:
 
     - name: Show page has same director link
       id: same-director-link
-      uses: classroom-resources/autograding-command-grader@v1
+      uses: classroom-resources/autograding-command-grader@d5b3fa6f50f7f629b7bfae0cc3e4c58852b412d5
       with:
         test-name: "Director: show page has same director link"
         setup-command: bash .github/classroom/reset_director_seed.sh
@@ -128,7 +137,7 @@ jobs:
 
     - name: Similar page includes matched movies
       id: same-director-matches
-      uses: classroom-resources/autograding-command-grader@v1
+      uses: classroom-resources/autograding-command-grader@d5b3fa6f50f7f629b7bfae0cc3e4c58852b412d5
       with:
         test-name: "Director: same director page includes matched movies"
         setup-command: bash .github/classroom/reset_director_seed.sh
@@ -138,7 +147,7 @@ jobs:
 
     - name: Similar page excludes other directors
       id: same-director-excludes
-      uses: classroom-resources/autograding-command-grader@v1
+      uses: classroom-resources/autograding-command-grader@d5b3fa6f50f7f629b7bfae0cc3e4c58852b412d5
       with:
         test-name: "Director: same director page excludes different director movies"
         setup-command: bash .github/classroom/reset_director_seed.sh
@@ -148,7 +157,7 @@ jobs:
 
     - name: No director sad path handled
       id: no-director-sad-path
-      uses: classroom-resources/autograding-command-grader@v1
+      uses: classroom-resources/autograding-command-grader@d5b3fa6f50f7f629b7bfae0cc3e4c58852b412d5
       with:
         test-name: "Director: no director sad path"
         setup-command: bash .github/classroom/reset_director_seed.sh
@@ -157,7 +166,8 @@ jobs:
         max-score: 15
 
     - name: Autograding Reporter
-      uses: classroom-resources/autograding-grading-reporter@v1
+      if: always()
+      uses: classroom-resources/autograding-grading-reporter@d13b5912daf5042ac1b71bc38bdb4a6bcd61d8ca
       env:
         APP-RESPONDS_RESULTS: ${{ steps.app-responds.outputs.result }}
         NEW-DIRECTOR-FIELD_RESULTS: ${{ steps.new-director-field.outputs.result }}
@@ -170,3 +180,101 @@ jobs:
         NO-DIRECTOR-SAD-PATH_RESULTS: ${{ steps.no-director-sad-path.outputs.result }}
       with:
         runners: app-responds,new-director-field,edit-director-field,update-director,show-director,same-director-link,same-director-matches,same-director-excludes,no-director-sad-path
+
+    - name: Generate grade result
+      if: always()
+      env:
+        HEAD_SHA: ${{ github.sha }}
+        CHECKOUT_OUTCOME: ${{ steps.checkout.outcome }}
+        SETUP_RUBY_OUTCOME: ${{ steps.setup-ruby.outcome }}
+        INSTALL_BUNDLER_OUTCOME: ${{ steps.install-bundler.outcome }}
+        REMOVE_ZENTEST_OUTCOME: ${{ steps.remove-zentest.outcome }}
+        INSTALL_APP_OUTCOME: ${{ steps.install-app.outcome }}
+        INSTALL_GRADER_OUTCOME: ${{ steps.install-grader.outcome }}
+        SETUP_DATABASE_OUTCOME: ${{ steps.setup-database.outcome }}
+        START_SERVER_OUTCOME: ${{ steps.start-server.outcome }}
+        APP_RESPONDS: ${{ steps.app-responds.outputs.result }}
+        NEW_DIRECTOR_FIELD: ${{ steps.new-director-field.outputs.result }}
+        EDIT_DIRECTOR_FIELD: ${{ steps.edit-director-field.outputs.result }}
+        UPDATE_DIRECTOR: ${{ steps.update-director.outputs.result }}
+        SHOW_DIRECTOR: ${{ steps.show-director.outputs.result }}
+        SAME_DIRECTOR_LINK: ${{ steps.same-director-link.outputs.result }}
+        SAME_DIRECTOR_MATCHES: ${{ steps.same-director-matches.outputs.result }}
+        SAME_DIRECTOR_EXCLUDES: ${{ steps.same-director-excludes.outputs.result }}
+        NO_DIRECTOR_SAD_PATH: ${{ steps.no-director-sad-path.outputs.result }}
+      run: |
+        python3 - <<'PY'
+        import base64
+        import json
+        import os
+
+        definitions = [
+            ("App: responds to simple request", 5, "APP_RESPONDS"),
+            ("Director: new page has director field", 10, "NEW_DIRECTOR_FIELD"),
+            ("Director: edit page has director field", 10, "EDIT_DIRECTOR_FIELD"),
+            ("Director: updating movie persists director", 15, "UPDATE_DIRECTOR"),
+            ("Director: show page displays director", 10, "SHOW_DIRECTOR"),
+            ("Director: show page has same director link", 10, "SAME_DIRECTOR_LINK"),
+            ("Director: same director page includes matched movies", 15, "SAME_DIRECTOR_MATCHES"),
+            ("Director: same director page excludes different director movies", 10, "SAME_DIRECTOR_EXCLUDES"),
+            ("Director: no director sad path", 15, "NO_DIRECTOR_SAD_PATH"),
+        ]
+        infrastructure = {
+            "checkout": os.environ.get("CHECKOUT_OUTCOME"),
+            "setup-ruby": os.environ.get("SETUP_RUBY_OUTCOME"),
+            "install-bundler": os.environ.get("INSTALL_BUNDLER_OUTCOME"),
+            "remove-zentest": os.environ.get("REMOVE_ZENTEST_OUTCOME"),
+            "install-app": os.environ.get("INSTALL_APP_OUTCOME"),
+            "install-grader": os.environ.get("INSTALL_GRADER_OUTCOME"),
+            "setup-database": os.environ.get("SETUP_DATABASE_OUTCOME"),
+            "start-server": os.environ.get("START_SERVER_OUTCOME"),
+        }
+        errors = [f"{name}={outcome or 'not_run'}" for name, outcome in infrastructure.items()
+                  if outcome != "success"]
+        tests = []
+        for name, maximum, env_name in definitions:
+            encoded = os.environ.get(env_name, "")
+            score = 0
+            status = "failed"
+            message = "Test did not produce a result"
+            if encoded:
+                try:
+                    payload = json.loads(base64.b64decode(encoded).decode())
+                    test = (payload.get("tests") or [{}])[0]
+                    score = test.get("score", 0)
+                    status = "passed" if score == maximum else "failed"
+                    message = test.get("message", "") or ""
+                except Exception as exc:
+                    errors.append(f"{name}: invalid grader output: {exc}")
+            tests.append({
+                "name": name,
+                "score": score,
+                "max_score": maximum,
+                "status": status,
+                "message": message,
+            })
+
+        result = {
+            "schema": "cuhk-csci3100-grade/v1",
+            "assignment": "hw05",
+            "head_sha": os.environ["HEAD_SHA"],
+            "score": sum(test["score"] for test in tests),
+            "max_score": 100,
+            "tests": tests,
+        }
+        if errors:
+            result["status"] = "grading_error"
+            result["message"] = "; ".join(errors)
+        with open("grade-result.json", "w", encoding="utf-8") as output:
+            json.dump(result, output, ensure_ascii=False, indent=2, allow_nan=False)
+            output.write("\n")
+        PY
+
+    - name: Upload grade result
+      if: always()
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: csci3100-grade-result
+        path: grade-result.json
+        if-no-files-found: error
+        retention-days: 30
