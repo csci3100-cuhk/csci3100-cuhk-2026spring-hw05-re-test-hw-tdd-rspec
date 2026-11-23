@@ -46,11 +46,15 @@ jobs:
     - name: Install grader gems
       id: install-grader
       run: |
+        # rubyntlm 0.6.6+ requires Ruby >= 3.0; the grader runs Ruby 2.7.0.
+        gem install public_suffix -v 5.1.1 --no-document
+        gem install addressable -v 2.8.6 --no-document
+        gem install rubyntlm -v 0.6.5 --no-document
         gem install rspec -v 3.10.0 --no-document
         gem install nokogiri -v 1.12.5 --no-document
         gem install connection_pool -v 2.5.5 --no-document
         gem install net-http-persistent -v 4.0.1 --no-document
-        gem install mechanize -v 2.8.2 --no-document
+        gem install mechanize -v 2.8.2 --no-document --conservative
 
     - name: Setup database
       id: setup-database
